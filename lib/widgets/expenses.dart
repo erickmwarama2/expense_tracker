@@ -27,9 +27,39 @@ class _ExpensesState extends State<Expenses> {
   ];
 
   void _openAddExpenseOverlay() {
-    showModalBottomSheet(context: context, builder: (ctx) {
-      return const NewExpense();
+    showModalBottomSheet(
+        isScrollControlled: true,
+        context: context,
+        builder: (ctx) {
+          return NewExpense(_addExpense);
+        });
+  }
+
+  void _addExpense(Expense expense) {
+    setState(() {
+      _registeredExpenses.add(expense);
     });
+  }
+
+  void _removeExpense(Expense expense) {
+    final int expenseIndex = _registeredExpenses.indexOf(expense);
+
+    setState(() {
+      _registeredExpenses.remove(expense);
+    });
+
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Item removed'),
+        duration: const Duration(seconds: 4),
+        action: SnackBarAction(label: 'Undo', onPressed: () {
+          setState(() {
+            _registeredExpenses.insert(expenseIndex, expense);
+          });
+        }),
+      ),
+    );
   }
 
   @override
@@ -48,7 +78,7 @@ class _ExpensesState extends State<Expenses> {
         children: [
           const Text('The chart'),
           Expanded(
-            child: ExpensesList(_registeredExpenses),
+            child: ExpensesList(_registeredExpenses, _removeExpense),
           ),
         ],
       ),
